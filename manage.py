@@ -4,7 +4,7 @@
 from flask_script import Manager, Shell
 
 from backend import app, db
-from backend.lib.sync import sync_categories
+from backend.lib import sync
 
 
 manager = Manager(app)
@@ -21,8 +21,27 @@ def init():
 
 @manager.command
 def sync_gentoo():
-    """Syncronize Gentoo data from packages.gentoo.org API"""
-    sync_categories()
+    """Synchronize Gentoo data from packages.gentoo.org API"""
+    sync.sync_categories()
+    sync.sync_packages()
+    #sync_versions()
+
+@manager.command
+def sync_categories():
+    """Synchronize only Gentoo categories data"""
+    sync.sync_categories()
+
+@manager.command
+def sync_packages():
+    """Synchronize only Gentoo packages base data (without details)"""
+    sync.sync_packages()
+
+'''
+@manager.command
+def sync_versions():
+    """Synchronize only Gentoo package details"""
+    sync.sync_versions()
+'''
 
 if __name__ == '__main__':
     manager.run()
