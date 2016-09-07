@@ -16,7 +16,7 @@ class Package(db.Model):
     category = db.relationship('Category', backref=db.backref('packages', lazy='dynamic'))
 
     def __repr__(self):
-        return "<Package %r/%r>" % (self.category.name, self.name)
+        return "<Package '%s/%s'>" % (self.category.name, self.name)
 
 class PackageVersion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -25,4 +25,4 @@ class PackageVersion(db.Model):
     package = db.relationship('Package', backref=db.backref('versions', lazy='dynamic'))
 
     def __repr__(self):
-        return "<PackageVersion %s/%r-%r>" % (self.package.category.name, self.package.name, self.version)
+        return "<PackageVersion '%s/%s-%s'>" % (self.package.category.name, self.package.name, self.version)
