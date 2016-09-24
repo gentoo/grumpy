@@ -15,6 +15,10 @@ class Package(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship('Category', backref=db.backref('packages', lazy='dynamic'))
 
+    @property
+    def full_name(self):
+        return "%s/%s" % (self.category.name, self.name)
+
     def __repr__(self):
         return "<Package '%s/%s'>" % (self.category.name, self.name)
 
