@@ -43,8 +43,8 @@ def sync_projects():
                 if 'ref' in elem.attrib:
                     if 'subprojects' not in proj:
                         proj['subprojects'] = []
-                    # subprojects will be a list of (subproject_email, inherit-members) tuples where inherit-members is None, 0 or 1 (if dtd is followed). TODO: Might change if sync code will want it differently
-                    proj['subprojects'].append((elem.attrib['ref'], elem.attrib['inherit-members'] if 'inherit-members' in elem.attrib else None))
+                    # subprojects will be a list of (subproject_email, inherit-members) tuples where inherit-members is True or False. TODO: Might change if sync code will want it differently
+                    proj['subprojects'].append((elem.attrib['ref'], True if ('inherit-members' in elem.attrib and elem.attrib['inherit-members'] == '1') else False))
                 else:
                     print("Invalid <subproject> tag inside project %s - required 'ref' attribute missing" % proj['email'] if 'email' in proj else "<unknown>")
             else:
