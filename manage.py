@@ -36,12 +36,10 @@ def sync_packages():
     """Synchronize only Gentoo packages base data (without details)"""
     sync.sync_packages()
 
-'''
 @manager.command
 def sync_versions():
     """Synchronize only Gentoo package details"""
     sync.sync_versions()
-'''
 
 if __name__ == '__main__':
     manager.run()

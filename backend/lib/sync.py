@@ -1,7 +1,7 @@
 from flask import json
 import requests
 from .. import app, db
-from .models import Category, Package
+from .models import Category, Package, PackageVersion
 
 url_base = "https://packages.gentoo.org/"
 http_session = requests.session()
@@ -42,3 +42,13 @@ def sync_packages():
                 new_pkg = Package(category_id=category.id, name=package['name'])
                 db.session.add(new_pkg)
     db.session.commit()
+
+def sync_versions():
+    for package in Package.query.all():
+        data = http_session.get(url_base + "packages/" + package.full_name + ".json")
+        if not data:
+            print("No JSON data for package %s" % package.full_name) # FIXME: Handle better; e.g mark the package as removed if no pkgmove update
+            continue
+        from pprint import pprint
+        pprint(json.loads(data.text))
+        break
