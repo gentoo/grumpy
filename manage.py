@@ -21,10 +21,16 @@ def init():
 
 @manager.command
 def sync_gentoo():
-    """Synchronize Gentoo data from packages.gentoo.org API"""
+    """Synchronize Gentoo data"""
+    sync.sync_projects()
     sync.sync_categories()
     sync.sync_packages()
     #sync_versions()
+
+@manager.command
+def sync_projects():
+    """Synchronize only Gentoo projects.xml data"""
+    sync.sync_projects()
 
 @manager.command
 def sync_categories():

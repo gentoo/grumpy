@@ -1,13 +1,64 @@
+import xml.etree.ElementTree as ET
 from flask import json
 import requests
 from .. import app, db
 from .models import Category, Package, PackageVersion
 
-url_base = "https://packages.gentoo.org/"
+proj_url = "https://api.gentoo.org/metastructure/projects.xml"
+pkg_url_base = "https://packages.gentoo.org/"
 http_session = requests.session()
 
+def sync_projects():
+    data = http_session.get(proj_url)
+    if not data:
+        print("Failed retrieving projects.xml")
+        return
+    root = ET.fromstring(data.text)
+    projects = []
+    # Parsing is based on http://www.gentoo.org/dtd/projects.dtd as of 2016-11-10
+    if root.tag.lower() != 'projects':
+        print("Downloaded projects.xml root tag isn't 'projects'")
+        return
+    for proj_elem in root:
+        if proj_elem.tag.lower() != 'project':
+            print("Skipping unknown <projects> subtag <%s>" % proj_elem.tag)
+            continue
+        proj = {}
+        for elem in proj_elem:
+            tag = elem.tag.lower()
+            if tag in ['email', 'name', 'url', 'description']:
+                proj[tag] = elem.text
+            elif tag == 'member':
+                member = {}
+                if 'is-lead' in elem.attrib and elem.attrib['is-lead'] == '1':
+                    member['is_lead'] = True
+                for member_elem in elem:
+                    member_tag = member_elem.tag.lower()
+                    if member_tag in ['email', 'name', 'role']:
+                        member[member_tag] = member_elem.text
+                if 'email' in member:
+                    # TODO: Sync the members (it's valid as email is given) - maybe at the end, after we have synced the project data, so we can add him to the project directly
+                    pass
+            elif tag == 'subproject':
+                if 'ref' in elem.attrib:
+                    if 'subprojects' not in proj:
+                        proj['subprojects'] = []
+                    # subprojects will be a list of (subproject_email, inherit-members) tuples where inherit-members is None, 0 or 1 (if dtd is followed). TODO: Might change if sync code will want it differently
+                    proj['subprojects'].append((elem.attrib['ref'], elem.attrib['inherit-members'] if 'inherit-members' in elem.attrib else None))
+                else:
+                    print("Invalid <subproject> tag inside project %s - required 'ref' attribute missing" % proj['email'] if 'email' in proj else "<unknown>")
+            else:
+                print("Skipping unknown <project> subtag <%s>" % tag)
+        if 'email' in proj:
+            projects.append(proj)
+        else:
+            print("Skipping incomplete project data due to lack of required email identifier: %s" % (proj,))
+    from pprint import pprint
+    print("Found the following projects and data:")
+    pprint(projects)
+
 def sync_categories():
-    url = url_base + "categories.json"
+    url = pkg_url_base + "categories.json"
     data = http_session.get(url)
     # TODO: Handle response error (if not data)
     categories = json.loads(data.text)
@@ -26,7 +77,7 @@ def sync_categories():
 def sync_packages():
     for category in Category.query.all():
         existing_packages = category.packages.all()
-        data = http_session.get(url_base + "categories/" + category.name + ".json")
+        data = http_session.get(pkg_url_base + "categories/" + category.name + ".json")
         if not data:
             print("No JSON data for category %s" % category.name) # FIXME: Better handling; mark category as inactive/gone?
             continue
@@ -45,7 +96,7 @@ def sync_packages():
 
 def sync_versions():
     for package in Package.query.all():
-        data = http_session.get(url_base + "packages/" + package.full_name + ".json")
+        data = http_session.get(pkg_url_base + "packages/" + package.full_name + ".json")
         if not data:
             print("No JSON data for package %s" % package.full_name) # FIXME: Handle better; e.g mark the package as removed if no pkgmove update
             continue
