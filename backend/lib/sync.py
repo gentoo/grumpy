@@ -38,6 +38,9 @@ def sync_projects():
                         member[member_tag] = member_elem.text
                 if 'email' in member:
                     # TODO: Sync the members (it's valid as email is given) - maybe at the end, after we have synced the project data, so we can add him to the project directly
+                    if 'members' not in proj:
+                        proj['members'] = []
+                    proj['members'].append(member)
                     pass
             elif tag == 'subproject':
                 if 'ref' in elem.attrib:
