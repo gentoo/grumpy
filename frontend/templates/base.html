@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %}Grumpy{% endblock %}</title>
+  <link rel="stylesheet" href="https://assets.gentoo.org/tyrian/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://assets.gentoo.org/tyrian/tyrian.min.css"/>
+  <meta name="theme-color" content="#54487a"/>
+</head>
+<body>
+<header>
+  <div class="site-title">
+    <div class="container">
+      <div class="row">
+        <div class="site-title-buttons">
+          <div class="btn-group btn-group-sm">
+            <a href="https://get.gentoo.org" role="button" class="btn get-gentoo"><span class="fa fa-fw fa-download"></span><strong>Get Gentoo!</strong></a>
+            {# TODO: Add the standard "gentoo.org sites" snippet (via jinja macro?); is there some API to use to get this list instead of hardcoding? #}
+          </div>
+        </div>
+        <div class="logo">
+          <a href="/" title="Back to the homepage" class="site-logo">
+            <object data="https://assets.gentoo.org/tyrian/site-logo.svg" type="image/svg+xml">
+              <img src="https://assets.gentoo.org/tyrian/site-logo.png" alt="Gentoo Linux Logo">
+            </object>
+          </a>
+          <span class="site-label">Grumpy</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <nav class="tyrian-navbar" role="navigation">
+    <div class="container">
+      <div class="row">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-main-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>{# FIXME: What are these supposed to do in Tyrian? #}
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+        <div class="collapse navbar-collapse navbar-main-collapse">
+          <ul class="nav navbar-nav">
+            {# FIXME: Add class="active" to "li" when we are on the given page already #}
+            <li><a href="/">Home</a></li>
+            {# TODO: Add other pages, potentially by iterating FlaskView's + some metadata in them (sequence or hide_navigation) instead of hardcoding #}
+          </ul>
+        </div>
+    </div>
+  </nav>
+
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+</header>
+</body>
+</html>
