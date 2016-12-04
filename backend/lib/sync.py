@@ -2,19 +2,19 @@ import xml.etree.ElementTree as ET
 from flask import json
 import requests
 from .. import app, db
-from .models import Category, Package, PackageVersion
+from .models import Category, Maintainer, Package, PackageVersion
 
 proj_url = "https://api.gentoo.org/metastructure/projects.xml"
 pkg_url_base = "https://packages.gentoo.org/"
 http_session = requests.session()
 
-def sync_projects():
+def get_project_data():
     data = http_session.get(proj_url)
     if not data:
         print("Failed retrieving projects.xml")
         return
     root = ET.fromstring(data.text)
-    projects = []
+    projects = {}
     # Parsing is based on http://www.gentoo.org/dtd/projects.dtd as of 2016-11-10
     if root.tag.lower() != 'projects':
         print("Downloaded projects.xml root tag isn't 'projects'")
@@ -53,12 +53,33 @@ def sync_projects():
             else:
                 print("Skipping unknown <project> subtag <%s>" % tag)
         if 'email' in proj:
-            projects.append(proj)
+            projects[proj['email']] = proj
         else:
             print("Skipping incomplete project data due to lack of required email identifier: %s" % (proj,))
-    from pprint import pprint
-    print("Found the following projects and data:")
-    pprint(projects)
+    return projects
+
+def sync_projects():
+    projects = get_project_data()
+    existing_maintainers = {}
+    # TODO: Use UPSERT instead (on_conflict_do_update) if we can rely on postgresql:9.5
+    for maintainer in Maintainer.query.all():
+        existing_maintainers[maintainer.email] = maintainer
+    for email, data in projects.items():
+        if email in existing_maintainers:
+            print ("Updating project %s" % email)
+            existing_maintainers[email].is_project = True
+            if 'description' in data:
+                existing_maintainers[email].description = data['description']
+            if 'name' in data:
+                existing_maintainers[email].name = data['name']
+            if 'url' in data:
+                existing_maintainers[email].url = data['url']
+        else:
+            print ("Adding project %s" % email)
+            new_maintainer = Maintainer(email=data['email'], is_project=True, description=data['description'], name=data['name'], url=data['url'])
+            db.session.add(new_maintainer)
+    db.session.commit()
+
 
 def sync_categories():
     url = pkg_url_base + "categories.json"
