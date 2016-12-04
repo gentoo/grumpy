@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-from flask import json
 import requests
 from .. import app, db
 from .models import Category, Maintainer, Package, PackageVersion
@@ -111,7 +110,7 @@ def sync_categories():
     url = pkg_url_base + "categories.json"
     data = http_session.get(url)
     # TODO: Handle response error (if not data)
-    categories = json.loads(data.text)
+    categories = data.json()
     existing_categories = {}
     # TODO: Use UPSERT instead (on_conflict_do_update) if we can rely on postgresql:9.5
     for cat in Category.query.all():
@@ -131,7 +130,7 @@ def sync_packages():
         if not data:
             print("No JSON data for category %s" % category.name) # FIXME: Better handling; mark category as inactive/gone?
             continue
-        packages = json.loads(data.text)['packages']
+        packages = data.json()['packages']
         # TODO: Use UPSERT instead (on_conflict_do_update)
         existing_packages = {}
         for pkg in Package.query.all():
@@ -151,5 +150,5 @@ def sync_versions():
             print("No JSON data for package %s" % package.full_name) # FIXME: Handle better; e.g mark the package as removed if no pkgmove update
             continue
         from pprint import pprint
-        pprint(json.loads(data.text))
+        pprint(data.json())
         break
