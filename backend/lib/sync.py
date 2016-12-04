@@ -78,8 +78,32 @@ def sync_projects():
             print ("Adding project %s" % email)
             new_maintainer = Maintainer(email=data['email'], is_project=True, description=data['description'], name=data['name'], url=data['url'])
             db.session.add(new_maintainer)
+            existing_maintainers[email] = new_maintainer
+        members = []
+        if 'subprojects' in data:
+            for subproject_email, inherit_members in data['subprojects']:
+                # TODO: How should we handle inherit_members?
+                if subproject_email in existing_maintainers:
+                    members.append(existing_maintainers[subproject_email])
+                else:
+                    print("Creating new project entry for subproject: %s" % subproject_email)
+                    new_subproject = Maintainer(email=subproject_email, is_project=True)
+                    db.session.add(new_subproject)
+                    existing_maintainers[subproject_email] = new_subproject
+                    members.append(new_subproject)
+        if 'members' in data:
+            for member in data['members']:
+                if member['email'] in existing_maintainers:
+                    members.append(existing_maintainers[member['email']])
+                else:
+                    print("Adding individual    %s" % member['email'])
+                    new_maintainer = Maintainer(email=member['email'], is_project=False, name=member['name'] if 'name' in member else None)
+                    db.session.add(new_maintainer)
+                    existing_maintainers[member['email']] = new_maintainer
+                    members.append(new_maintainer)
+            # TODO: Include role information in the association?
+        existing_maintainers[email].members = members
     db.session.commit()
-
 
 def sync_categories():
     url = pkg_url_base + "categories.json"
