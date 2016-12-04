@@ -13,7 +13,7 @@ def get_project_data():
     if not data:
         print("Failed retrieving projects.xml")
         return
-    root = ET.fromstring(data.text)
+    root = ET.fromstring(data.content)
     projects = {}
     # Parsing is based on http://www.gentoo.org/dtd/projects.dtd as of 2016-11-10
     if root.tag.lower() != 'projects':
