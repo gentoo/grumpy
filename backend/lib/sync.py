@@ -37,7 +37,6 @@ def get_project_data():
                     if member_tag in ['email', 'name', 'role']:
                         member[member_tag] = member_elem.text
                 if 'email' in member:
-                    # TODO: Sync the members (it's valid as email is given) - maybe at the end, after we have synced the project data, so we can add him to the project directly
                     if 'members' not in proj:
                         proj['members'] = []
                     proj['members'].append(member)
@@ -94,9 +93,12 @@ def sync_projects():
         if 'members' in data:
             for member in data['members']:
                 if member['email'] in existing_maintainers:
+                    # TODO: Stop overwriting the name from master data, if/once we have a proper sync source for individual maintainers (Gentoo LDAP?)
+                    if 'name' in member:
+                        existing_maintainers[member['email']].name = member['name']
                     members.append(existing_maintainers[member['email']])
                 else:
-                    print("Adding individual    %s" % member['email'])
+                    print("Adding individual maintainer %s" % member['email'])
                     new_maintainer = Maintainer(email=member['email'], is_project=False, name=member['name'] if 'name' in member else None)
                     db.session.add(new_maintainer)
                     existing_maintainers[member['email']] = new_maintainer
