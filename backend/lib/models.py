@@ -30,3 +30,14 @@ class PackageVersion(db.Model):
 
     def __repr__(self):
         return "<PackageVersion '%s/%s-%s'>" % (self.package.category.name, self.package.name, self.version)
+
+class Maintainer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.Unicode(50), nullable=False, unique=True)
+    is_project = db.Column(db.Boolean, nullable=False, server_default='f', default=False)
+    name = db.Column(db.Unicode(128))
+    url = db.Column(db.Unicode())
+    description = db.Column(db.Unicode(500))
+
+    def __repr__(self):
+        return "<Maintainer %s '%s'>" % ("project" if self.is_project else "individual", self.email)
