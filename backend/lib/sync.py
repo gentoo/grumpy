@@ -8,16 +8,16 @@ pkg_url_base = "https://packages.gentoo.org/"
 http_session = requests.session()
 
 def get_project_data():
+    projects = {}
     data = http_session.get(proj_url)
     if not data:
         print("Failed retrieving projects.xml")
-        return
+        return projects
     root = ET.fromstring(data.content)
-    projects = {}
     # Parsing is based on http://www.gentoo.org/dtd/projects.dtd as of 2016-11-10
     if root.tag.lower() != 'projects':
         print("Downloaded projects.xml root tag isn't 'projects'")
-        return
+        return projects
     for proj_elem in root:
         if proj_elem.tag.lower() != 'project':
             print("Skipping unknown <projects> subtag <%s>" % proj_elem.tag)
