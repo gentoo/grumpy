@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 
+<form method="POST" action=".">
+  {{ form.hidden_tag() }}
+
 <div class="panel panel-default">
   <div class="panel-heading">
     <h3 class="panel-title">
@@ -9,8 +12,10 @@
   </div>
   <div class="table-responsive">
     <table class="table table-striped">
-      {% for maintainer in maintainers if maintainer.is_project -%}
+      {% for item in form.maintainers if mapping[item.data].is_project -%}
+      {%- set maintainer = mapping[item.data] -%}
       <tr>
+        <td>{{ item }}</td>
         <td class="text-nowrap">{{ maintainer.email }}</td>
         <td>{{ maintainer.name }}</td>
       </tr>
@@ -27,8 +32,10 @@
   </div>
   <div class="table-responsive">
     <table class="table table-striped">
-      {% for maintainer in maintainers if not maintainer.is_project -%}
+      {% for item in form.maintainers if not mapping[item.data].is_project -%}
+      {%- set maintainer = mapping[item.data] -%}
       <tr>
+        <td>{{ item }}</td>
         <td class="text-nowrap">{{ maintainer.email }}</td>
         <td>{{ maintainer.name }}</td>
       </tr>
@@ -36,5 +43,9 @@
     </table>
   </div>
 </div>
+
+<input type="submit" value="Save follows"/>
+
+</form>
 
 {% endblock %}

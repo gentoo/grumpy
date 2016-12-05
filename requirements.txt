@@ -1,5 +1,6 @@
 Flask
 Flask-SQLAlchemy
 Flask-Classy
+Flask-WTF
 Flask-Script  #manage.py
 requests
