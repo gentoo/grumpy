@@ -193,3 +193,5 @@ def sync_versions():
             print("%d packages updated, committing DB transaction" % cnt)
             db.session.commit()
             now = datetime.utcnow()
+
+    db.session.commit()
