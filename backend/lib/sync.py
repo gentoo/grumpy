@@ -5,7 +5,7 @@ from datetime import datetime
 from .. import app, db
 from .models import Category, Maintainer, Package, PackageVersion
 
-SYNC_BUFFER_SECS = 30*60
+SYNC_BUFFER_SECS = 60*60 #1 hour
 proj_url = "https://api.gentoo.org/metastructure/projects.xml"
 pkg_url_base = "https://packages.gentoo.org/"
 http_session = requests.session()
@@ -154,7 +154,10 @@ def sync_versions():
     for maintainer in Maintainer.query.all():
         existing_maintainers[maintainer.email] = maintainer
 
-    for package in Package.query.filter(Package.last_sync_ts < ts).order_by(Package.last_sync_ts).all():
+    packages_to_sync = Package.query.filter(Package.last_sync_ts < ts).order_by(Package.last_sync_ts).all()
+    print("Going to sync %d packages%s" % (len(packages_to_sync), (" (oldest sync UTC timestamp: %s)" % packages_to_sync[0].last_sync_ts if len(packages_to_sync) else "")))
+
+    for package in packages_to_sync:
         cnt += 1
         data = http_session.get(pkg_url_base + "packages/" + package.full_name + ".json")
         if not data:
