@@ -1,8 +1,11 @@
 import xml.etree.ElementTree as ET
 import requests
+import time
+from datetime import datetime
 from .. import app, db
 from .models import Category, Maintainer, Package, PackageVersion
 
+SYNC_BUFFER_SECS = 30*60
 proj_url = "https://api.gentoo.org/metastructure/projects.xml"
 pkg_url_base = "https://packages.gentoo.org/"
 http_session = requests.session()
@@ -144,11 +147,49 @@ def sync_packages():
     db.session.commit()
 
 def sync_versions():
-    for package in Package.query.all():
+    cnt = 0
+    ts = datetime.utcfromtimestamp(time.time() - SYNC_BUFFER_SECS)
+    now = datetime.utcnow()
+    existing_maintainers = {}
+    for maintainer in Maintainer.query.all():
+        existing_maintainers[maintainer.email] = maintainer
+
+    for package in Package.query.filter(Package.last_sync_ts < ts).all():
+        cnt += 1
         data = http_session.get(pkg_url_base + "packages/" + package.full_name + ".json")
         if not data:
             print("No JSON data for package %s" % package.full_name) # FIXME: Handle better; e.g mark the package as removed if no pkgmove update
             continue
-        from pprint import pprint
-        pprint(data.json())
-        break
+
+        pkg = data.json()
+
+        print ("Updating package: %s" % package.full_name)
+        if 'description' in pkg:
+            package.description = pkg['description']
+
+        maintainers = []
+        if 'maintainers' in pkg:
+            for maint in pkg['maintainers']:
+                if 'email' not in maint:
+                    print("WARNING: Package %s was told to have a maintainer without an e-mail identifier" % package.full_name)
+                    continue
+                if maint['email'] in existing_maintainers: # FIXME: Some proxy-maintainers are using mixed case e-mail address, right now we'd be creating duplicates right now if the case is different across different packages
+                    maintainers.append(existing_maintainers[maint['email']])
+                else:
+                    is_project = False
+                    if 'type' in maint and maint['type'] == 'project':
+                        is_project = True
+                    print("Adding %s maintainer %s" % ("project" if is_project else "individual", maint['email']))
+                    new_maintainer = Maintainer(email=maint['email'], is_project=is_project, name=maint['name'] if 'name' in maint else None)
+                    db.session.add(new_maintainer)
+                    existing_maintainers[maint['email']] = new_maintainer
+                    maintainers.append(new_maintainer)
+
+        # Intentionally outside if 'maintainers' in pkg, because if there are no maintainers in JSON, it's falled to maintainer-needed and we need to clean out old maintainer entries
+        package.maintainers = maintainers # TODO: Retain order to know who is primary; retain description associated with the maintainership
+        package.last_sync_ts = now
+
+        if not cnt % 100:
+            print("%d packages updated, committing DB transaction" % cnt)
+            db.session.commit()
+            now = datetime.utcnow()
