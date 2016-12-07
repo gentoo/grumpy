@@ -154,7 +154,7 @@ def sync_versions():
     for maintainer in Maintainer.query.all():
         existing_maintainers[maintainer.email] = maintainer
 
-    for package in Package.query.filter(Package.last_sync_ts < ts).all():
+    for package in Package.query.filter(Package.last_sync_ts < ts).order_by(Package.last_sync_ts).all():
         cnt += 1
         data = http_session.get(pkg_url_base + "packages/" + package.full_name + ".json")
         if not data:
