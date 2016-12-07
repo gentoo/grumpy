@@ -2,6 +2,18 @@ from datetime import datetime
 from .. import db
 
 
+class Keyword(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # current longest entries would be of length 16 with "~sparc64-freebsd" and "~sparc64-solaris"
+    name = db.Column(db.Unicode(20), unique=True, nullable=False) # TODO: Force lower case?
+
+    @property
+    def stable(self):
+        return not self.name.startswith('~')
+
+    def __repr__(self):
+        return "<Keyword %r>" % self.name
+
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode(30), unique=True, nullable=False)
@@ -19,12 +31,13 @@ class Package(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode(128), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    category = db.relationship('Category', backref=db.backref('packages', lazy='dynamic'))
+    category = db.relationship('Category', backref=db.backref('packages', lazy='select'))
     description = db.Column(db.Unicode(500))
     last_sync_ts = db.Column(db.TIMESTAMP, nullable=False, default=datetime.utcfromtimestamp(0))
     maintainers = db.relationship("Maintainer",
         secondary=package_maintainer_rel_table,
         backref='directly_maintained_packages')
+    # versions backref
 
     @property
     def full_name(self):
@@ -33,11 +46,18 @@ class Package(db.Model):
     def __repr__(self):
         return "<Package '%s/%s'>" % (self.category.name, self.name)
 
+package_version_keywords_rel_table = db.Table('package_version_keywords_rel',
+    db.Column('package_version_id', db.Integer, db.ForeignKey('package_version.id')),
+    db.Column('keyword_id', db.Integer, db.ForeignKey('keyword.id')),
+)
+
 class PackageVersion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     version = db.Column(db.Unicode(128), nullable=False)
     package_id = db.Column(db.Integer, db.ForeignKey('package.id'), nullable=False)
-    package = db.relationship('Package', backref=db.backref('versions', lazy='dynamic'))
+    package = db.relationship('Package', backref=db.backref('versions', lazy='select'))
+    keywords = db.relationship("Keyword", secondary=package_version_keywords_rel_table)
+    masks = db.Column(db.UnicodeText, nullable=True) # Concatenated mask reasons if p.masked, NULL if not a masked version. TODO: arch specific masks
 
     def __repr__(self):
         return "<PackageVersion '%s/%s-%s'>" % (self.package.category.name, self.package.name, self.version)
