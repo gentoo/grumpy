@@ -10,6 +10,11 @@ class Category(db.Model):
     def __repr__(self):
         return "<Category %r>" % self.name
 
+package_maintainer_rel_table = db.Table('package_maintainer_rel',
+    db.Column('package_id', db.Integer, db.ForeignKey('package.id')),
+    db.Column('maintainer_id', db.Integer, db.ForeignKey('maintainer.id')),
+)
+
 class Package(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode(128), nullable=False)
@@ -17,6 +22,9 @@ class Package(db.Model):
     category = db.relationship('Category', backref=db.backref('packages', lazy='dynamic'))
     description = db.Column(db.Unicode(500))
     last_sync_ts = db.Column(db.TIMESTAMP, nullable=False, default=datetime.utcfromtimestamp(0))
+    maintainers = db.relationship("Maintainer",
+        secondary=package_maintainer_rel_table,
+        backref='directly_maintained_packages')
 
     @property
     def full_name(self):
@@ -54,6 +62,7 @@ class Maintainer(db.Model):
         secondaryjoin=id==maintainer_project_membership_rel_table.c.maintainer_id,
         backref='projects')
     # projects relationship backref ^^
+    # directly_maintained_packages backref - list of packages maintained directly by given project or individual maintainer (as opposed to a bigger list that includes packages maintained by parent/child projects or projects the given individual maintainer is part of)
 
     def __repr__(self):
         return "<Maintainer %s '%s'>" % ("project" if self.is_project else "individual", self.email)
