@@ -1,3 +1,4 @@
+from datetime import datetime
 from .. import db
 
 
@@ -14,6 +15,8 @@ class Package(db.Model):
     name = db.Column(db.Unicode(128), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     category = db.relationship('Category', backref=db.backref('packages', lazy='dynamic'))
+    description = db.Column(db.Unicode(500))
+    last_sync_ts = db.Column(db.TIMESTAMP, nullable=False, default=datetime.utcfromtimestamp(0))
 
     @property
     def full_name(self):
@@ -30,6 +33,7 @@ class PackageVersion(db.Model):
 
     def __repr__(self):
         return "<PackageVersion '%s/%s-%s'>" % (self.package.category.name, self.package.name, self.version)
+
 
 maintainer_project_membership_rel_table = db.Table('maintainer_project_membership_rel',
     db.Column('project_id', db.Integer, db.ForeignKey('maintainer.id')),
