@@ -28,7 +28,9 @@ def get_project_data():
         proj = {}
         for elem in proj_elem:
             tag = elem.tag.lower()
-            if tag in ['email', 'name', 'url', 'description']:
+            if tag in ['email']:
+                proj[tag] = elem.text.lower()
+            if tag in ['name', 'url', 'description']:
                 proj[tag] = elem.text
             elif tag == 'member':
                 member = {}
@@ -36,19 +38,20 @@ def get_project_data():
                     member['is_lead'] = True
                 for member_elem in elem:
                     member_tag = member_elem.tag.lower()
-                    if member_tag in ['email', 'name', 'role']:
+                    if member_tag in ['email']:
+                        member[member_tag] = member_elem.text.lower()
+                    if member_tag in ['name', 'role']:
                         member[member_tag] = member_elem.text
                 if 'email' in member:
                     if 'members' not in proj:
                         proj['members'] = []
                     proj['members'].append(member)
-                    pass
             elif tag == 'subproject':
                 if 'ref' in elem.attrib:
                     if 'subprojects' not in proj:
                         proj['subprojects'] = []
                     # subprojects will be a list of (subproject_email, inherit-members) tuples where inherit-members is True or False. TODO: Might change if sync code will want it differently
-                    proj['subprojects'].append((elem.attrib['ref'], True if ('inherit-members' in elem.attrib and elem.attrib['inherit-members'] == '1') else False))
+                    proj['subprojects'].append((elem.attrib['ref'].lower(), True if ('inherit-members' in elem.attrib and elem.attrib['inherit-members'] == '1') else False))
                 else:
                     print("Invalid <subproject> tag inside project %s - required 'ref' attribute missing" % proj['email'] if 'email' in proj else "<unknown>")
             else:
@@ -77,7 +80,7 @@ def sync_projects():
                 existing_maintainers[email].url = data['url']
         else:
             print ("Adding project %s" % email)
-            new_maintainer = Maintainer(email=data['email'], is_project=True, description=data['description'], name=data['name'], url=data['url'])
+            new_maintainer = Maintainer(email=email, is_project=True, description=data['description'], name=data['name'], url=data['url'])
             db.session.add(new_maintainer)
             existing_maintainers[email] = new_maintainer
         members = []
@@ -176,16 +179,17 @@ def sync_versions():
                 if 'email' not in maint:
                     print("WARNING: Package %s was told to have a maintainer without an e-mail identifier" % package.full_name)
                     continue
-                if maint['email'] in existing_maintainers: # FIXME: Some proxy-maintainers are using mixed case e-mail address, right now we'd be creating duplicates right now if the case is different across different packages
-                    maintainers.append(existing_maintainers[maint['email']])
+                email = maint['email'].lower()
+                if email in existing_maintainers:
+                    maintainers.append(existing_maintainers[email])
                 else:
                     is_project = False
                     if 'type' in maint and maint['type'] == 'project':
                         is_project = True
-                    print("Adding %s maintainer %s" % ("project" if is_project else "individual", maint['email']))
-                    new_maintainer = Maintainer(email=maint['email'], is_project=is_project, name=maint['name'] if 'name' in maint else None)
+                    print("Adding %s maintainer %s" % ("project" if is_project else "individual", email))
+                    new_maintainer = Maintainer(email=email, is_project=is_project, name=maint['name'] if 'name' in maint else None)
                     db.session.add(new_maintainer)
-                    existing_maintainers[maint['email']] = new_maintainer
+                    existing_maintainers[email] = new_maintainer
                     maintainers.append(new_maintainer)
 
         # Intentionally outside if 'maintainers' in pkg, because if there are no maintainers in JSON, it's falled to maintainer-needed and we need to clean out old maintainer entries

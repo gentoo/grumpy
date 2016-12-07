@@ -50,6 +50,7 @@ maintainer_project_membership_rel_table = db.Table('maintainer_project_membershi
 
 class Maintainer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    # TODO: This has to be unique case insensitive. Currently we have to always force lower() to guarantee this and find the proper maintainer entry; later we might want to use some sort of NOCASE collate rules here to keep the capitalization as preferred per master data
     email = db.Column(db.Unicode(50), nullable=False, unique=True)
     is_project = db.Column(db.Boolean, nullable=False, server_default='f', default=False)
     name = db.Column(db.Unicode(128))
