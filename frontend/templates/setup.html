@@ -16,7 +16,7 @@
       {%- set maintainer = mapping[item.data] -%}
       <tr>
         <td>{{ item }}</td>
-        <td class="text-nowrap">{{ maintainer.email }}</td>
+        <td class="text-nowrap">{{ maintainer.email[0:-11] }}</td>{# 11 is len('@gentoo.org'), which this is guaranteed to end with in this loop #}
         <td>{{ maintainer.name|default('', True) }}</td>
       </tr>
       {%- endfor %}
