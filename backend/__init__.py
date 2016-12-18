@@ -10,5 +10,6 @@ db = SQLAlchemy(app)
 from frontend import *
 
 GrumpyView.register(app)
+SetupView.register(app)
 
 __all__ = ["app", "db"]

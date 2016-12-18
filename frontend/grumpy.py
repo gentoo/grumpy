@@ -22,7 +22,8 @@ class GrumpyView(FlaskView):
         categories = models.Category.query.all()
         return render_template("index.html", categories=categories)
 
-    def setup(self):
+class SetupView(FlaskView):
+    def index(self):
         maintainers = models.Maintainer.query.order_by(collate(models.Maintainer.email, 'NOCASE')).all()
         form = FollowSetupForm()
         choices = []

@@ -1,5 +1,5 @@
-from .grumpy import GrumpyView
+from .grumpy import GrumpyView, SetupView
 
 __all__ = [
-    "GrumpyView",
+    "GrumpyView", "SetupView",
 ]
