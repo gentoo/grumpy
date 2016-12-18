@@ -7,6 +7,26 @@
 <div class="panel panel-default">
   <div class="panel-heading">
     <h3 class="panel-title">
+      <span class="fa fa-fw fa-user"></span>Known developers
+    </h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      {% for item in form.maintainers if not mapping[item.data].is_project and mapping[item.data].email.endswith('@gentoo.org') -%}
+      {%- set maintainer = mapping[item.data] -%}
+      <tr>
+        <td>{{ item }}</td>
+        <td class="text-nowrap">{{ maintainer.email }}</td>
+        <td>{{ maintainer.name|default('', True) }}</td>
+      </tr>
+      {%- endfor %}
+    </table>
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">
       <span class="fa fa-fw fa-users"></span>Known projects
     </h3>
   </div>
@@ -17,7 +37,7 @@
       <tr>
         <td>{{ item }}</td>
         <td class="text-nowrap">{{ maintainer.email }}</td>
-        <td>{{ maintainer.name }}</td>
+        <td>{{ maintainer.name|default('', True) }}</td>
       </tr>
       {%- endfor %}
     </table>
@@ -27,24 +47,24 @@
 <div class="panel panel-default">
   <div class="panel-heading">
     <h3 class="panel-title">
-      <span class="fa fa-fw fa-user"></span>Known developers
+      <span class="fa fa-fw fa-user"></span>Known proxy maintainers
     </h3>
   </div>
   <div class="table-responsive">
     <table class="table table-striped">
-      {% for item in form.maintainers if not mapping[item.data].is_project -%}
+      {% for item in form.maintainers if not mapping[item.data].is_project and not mapping[item.data].email.endswith('@gentoo.org') -%}
       {%- set maintainer = mapping[item.data] -%}
       <tr>
         <td>{{ item }}</td>
         <td class="text-nowrap">{{ maintainer.email }}</td>
-        <td>{{ maintainer.name }}</td>
+        <td>{{ maintainer.name|default('', True) }}</td>
       </tr>
       {%- endfor %}
     </table>
   </div>
 </div>
 
-<input type="submit" value="Save follows"/>
+<input type="submit" class="btn btn-default" value="Save follows"/>
 
 </form>
 
