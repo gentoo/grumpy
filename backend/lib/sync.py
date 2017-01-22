@@ -143,9 +143,9 @@ def sync_packages():
             continue
         packages = data.json()['packages']
         # TODO: Use UPSERT instead (on_conflict_do_update)
-        existing_packages = {}
-        for pkg in Package.query.all():
-            existing_packages[pkg.name] = pkg
+
+        existing_packages = {pkg.name: pkg for pkg in Package.query.all()}
+
         for package in packages:
             if package['name'] in existing_packages:
                 continue # TODO: Update description once we keep that in DB
