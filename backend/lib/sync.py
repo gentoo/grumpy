@@ -192,7 +192,7 @@ def sync_versions():
                     if maint['type'] == 'project':
                         is_project = True
                     print("Adding %s maintainer %s" % ("project" if is_project else "individual", email))
-                    new_maintainer = Maintainer(email=email, is_project=is_project, name=maint['name'] if 'name' in maint else None)
+                    new_maintainer = Maintainer(email=email, is_project=is_project, name=maint.get('name'))
                     db.session.add(new_maintainer)
                     existing_maintainers[email] = new_maintainer
                     maintainers.append(new_maintainer)
