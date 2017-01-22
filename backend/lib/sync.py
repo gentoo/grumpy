@@ -144,7 +144,7 @@ def sync_packages():
             if package['name'] in existing_packages:
                 continue # TODO: Update description once we keep that in DB
             else:
-                new_pkg = Package(category_id=category.id, name=package['name'])
+                new_pkg = Package(category=category, name=package['name'])
                 db.session.add(new_pkg)
     db.session.commit()
 
