@@ -131,7 +131,12 @@ def sync_categories():
 
 def sync_packages():
     for category in Category.query.all():
-        existing_packages = category.packages.all()
+        if not category.packages:
+            print('Category %s has no packages' % category.name)
+            existing_packages = []
+        else:
+            existing_packages = category.packages.all()
+
         data = http_session.get(pkg_url_base + "categories/" + category.name + ".json")
         if not data:
             print("No JSON data for category %s" % category.name) # FIXME: Better handling; mark category as inactive/gone?
