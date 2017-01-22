@@ -175,15 +175,17 @@ def sync_versions():
         maintainers = []
         if 'maintainers' in pkg:
             for maint in pkg['maintainers']:
-                if 'email' not in maint:
-                    print("WARNING: Package %s was told to have a maintainer without an e-mail identifier" % package.full_name)
-                    continue
+                assert (
+                    'email' in maint and 'type' in maint,
+                    "Package %s maintainer %s entry not GLEP 67 valid" % (package.full_name, maint)
+                )
+
                 email = maint['email'].lower()
                 if email in existing_maintainers:
                     maintainers.append(existing_maintainers[email])
                 else:
                     is_project = False
-                    if 'type' in maint and maint['type'] == 'project':
+                    if maint['type'] == 'project':
                         is_project = True
                     print("Adding %s maintainer %s" % ("project" if is_project else "individual", email))
                     new_maintainer = Maintainer(email=email, is_project=is_project, name=maint['name'] if 'name' in maint else None)
