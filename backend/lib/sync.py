@@ -152,6 +152,12 @@ def sync_packages():
     db.session.commit()
 
 def sync_versions():
+    """Synchronize packages version data from packages.gentoo.org.
+
+    For each package that has not been updated in the last SYNC_BUFFER_SECS,
+    pull package information and refresh its description, maintainers,
+    versions and keywords.
+    """
     cnt = 0
     ts = datetime.utcfromtimestamp(time.time() - SYNC_BUFFER_SECS)
     now = datetime.utcnow()
@@ -172,9 +178,12 @@ def sync_versions():
         pkg = data.json()
 
         print ("Updating package: %s" % package.full_name)
+
+        # 1. refresh description
         if 'description' in pkg:
             package.description = pkg['description']
 
+	# 2. refresh maintainers
         maintainers = []
         for maint in pkg.get('maintainers', []):
             if 'email' not in maint or 'type' not in maint:
@@ -198,6 +207,12 @@ def sync_versions():
 
         # Intentionally outside if 'maintainers' in pkg, because if there are no maintainers in JSON, it's falled to maintainer-needed and we need to clean out old maintainer entries
         package.maintainers = maintainers # TODO: Retain order to know who is primary; retain description associated with the maintainership
+
+        # TODO: 3. refresh versions
+
+        # TODO: 4. refresh keywords
+
+        # 5. mark package as refreshed
         package.last_sync_ts = now
 
         if not cnt % 100:
