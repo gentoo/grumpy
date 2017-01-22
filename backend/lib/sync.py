@@ -117,10 +117,8 @@ def sync_categories():
     data = http_session.get(url)
     # TODO: Handle response error (if not data)
     categories = data.json()
-    existing_categories = {}
     # TODO: Use UPSERT instead (on_conflict_do_update) if we can rely on postgresql:9.5
-    for cat in Category.query.all():
-        existing_categories[cat.name] = cat
+    existing_categories = {cat.name: cat for cat in Category.query.all()}
     for category in categories:
         if category['name'] in existing_categories:
             existing_categories[category['name']].description = category['description']
