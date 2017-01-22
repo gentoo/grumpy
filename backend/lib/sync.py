@@ -36,7 +36,7 @@ def get_project_data():
             tag = elem.tag.lower()
             if tag in ['email']:
                 proj[tag] = elem.text.lower()
-            if tag in ['name', 'url', 'description']:
+            elif tag in ['name', 'url', 'description']:
                 proj[tag] = elem.text
             elif tag == 'member':
                 member = {}
@@ -46,7 +46,7 @@ def get_project_data():
                     member_tag = member_elem.tag.lower()
                     if member_tag in ['email']:
                         member[member_tag] = member_elem.text.lower()
-                    if member_tag in ['name', 'role']:
+                    elif member_tag in ['name', 'role']:
                         member[member_tag] = member_elem.text
                 if 'email' in member:
                     proj['members'].append(member)
