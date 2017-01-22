@@ -5,7 +5,7 @@ from datetime import datetime
 import requests
 
 from .. import app, db
-from .models import Category, Maintainer, Package, PackageVersion
+from .models import Category, Keyword, Maintainer, Package, PackageVersion
 
 SYNC_BUFFER_SECS = 60*60 #1 hour
 proj_url = "https://api.gentoo.org/metastructure/projects.xml"
@@ -165,6 +165,8 @@ def sync_versions():
     for maintainer in Maintainer.query.all():
         existing_maintainers[maintainer.email] = maintainer
 
+    all_keywords = {kwd.name: kwd for kwd in Keyword.query.all()}
+
     packages_to_sync = Package.query.filter(Package.last_sync_ts < ts).order_by(Package.last_sync_ts).all()
     print("Going to sync %d packages%s" % (len(packages_to_sync), (" (oldest sync UTC timestamp: %s)" % packages_to_sync[0].last_sync_ts if len(packages_to_sync) else "")))
 
@@ -183,7 +185,7 @@ def sync_versions():
         if 'description' in pkg:
             package.description = pkg['description']
 
-	# 2. refresh maintainers
+        # 2. refresh maintainers
         maintainers = []
         for maint in pkg.get('maintainers', []):
             if 'email' not in maint or 'type' not in maint:
@@ -208,9 +210,41 @@ def sync_versions():
         # Intentionally outside if 'maintainers' in pkg, because if there are no maintainers in JSON, it's falled to maintainer-needed and we need to clean out old maintainer entries
         package.maintainers = maintainers # TODO: Retain order to know who is primary; retain description associated with the maintainership
 
-        # TODO: 3. refresh versions
+        # 3.1. refresh versions
+        pkg_versions = {pkgver.version: pkgver for pkgver in package.versions}
+        for version in pkg['versions']:
+            if version['version'] not in pkg_versions:
+                pkgver = PackageVersion(version=version['version'],
+                                        package=package)
+                db.session.add(pkgver)
+            else:
+                pkgver = pkg_versions[version['version']]
 
-        # TODO: 4. refresh keywords
+            pkg_keywords = {kwd.name: kwd for kwd in pkgver.keywords}
+
+            # 4.1. synchronize new keywords
+            for keyword in version['keywords']:
+                if keyword in pkg_keywords:
+                    continue
+
+                # TODO: keywords should be initialized earlier to not have to
+                # worry about their existence here
+                if keyword not in all_keywords:
+                    kwd = Keyword(name=keyword)
+                    db.session.add(kwd)
+                    all_keywords[keyword] = kwd
+
+                pkgver.keywords.append(all_keywords[keyword])
+
+            # 4.2. cleanup removed keywords
+            for keyword, kwd_obj in pkg_keywords.items():
+                if keyword not in version['keywords']:
+                    db.session.delete(kwd_obj)
+
+        # 3.2 cleanup dead revisions
+        for version, ver_obj in pkg_versions:
+            if version not in pkg['versions']:
+                db.session.delete(ver_obj)
 
         # 5. mark package as refreshed
         package.last_sync_ts = now
