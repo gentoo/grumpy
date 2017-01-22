@@ -176,26 +176,25 @@ def sync_versions():
             package.description = pkg['description']
 
         maintainers = []
-        if 'maintainers' in pkg:
-            for maint in pkg['maintainers']:
-                if 'email' not in maint or 'type' not in maint:
-                    raise ValueError(
-                        "Package %s maintainer %s entry not GLEP 67 valid" %
-                        (package.full_name, maint)
-                    )
+        for maint in pkg.get('maintainers', []):
+            if 'email' not in maint or 'type' not in maint:
+                raise ValueError(
+                    "Package %s maintainer %s entry not GLEP 67 valid" %
+                    (package.full_name, maint)
+                )
 
-                email = maint['email'].lower()
-                if email in existing_maintainers:
-                    maintainers.append(existing_maintainers[email])
-                else:
-                    is_project = False
-                    if maint['type'] == 'project':
-                        is_project = True
-                    print("Adding %s maintainer %s" % ("project" if is_project else "individual", email))
-                    new_maintainer = Maintainer(email=email, is_project=is_project, name=maint.get('name'))
-                    db.session.add(new_maintainer)
-                    existing_maintainers[email] = new_maintainer
-                    maintainers.append(new_maintainer)
+            email = maint['email'].lower()
+            if email in existing_maintainers:
+                maintainers.append(existing_maintainers[email])
+            else:
+                is_project = False
+                if maint['type'] == 'project':
+                    is_project = True
+                print("Adding %s maintainer %s" % ("project" if is_project else "individual", email))
+                new_maintainer = Maintainer(email=email, is_project=is_project, name=maint.get('name'))
+                db.session.add(new_maintainer)
+                existing_maintainers[email] = new_maintainer
+                maintainers.append(new_maintainer)
 
         # Intentionally outside if 'maintainers' in pkg, because if there are no maintainers in JSON, it's falled to maintainer-needed and we need to clean out old maintainer entries
         package.maintainers = maintainers # TODO: Retain order to know who is primary; retain description associated with the maintainership
