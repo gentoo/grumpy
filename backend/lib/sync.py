@@ -1,7 +1,9 @@
-import xml.etree.ElementTree as ET
-import requests
 import time
+import xml.etree.ElementTree as ET
 from datetime import datetime
+
+import requests
+
 from .. import app, db
 from .models import Category, Maintainer, Package, PackageVersion
 
@@ -9,6 +11,7 @@ SYNC_BUFFER_SECS = 60*60 #1 hour
 proj_url = "https://api.gentoo.org/metastructure/projects.xml"
 pkg_url_base = "https://packages.gentoo.org/"
 http_session = requests.session()
+
 
 def get_project_data():
     projects = {}
