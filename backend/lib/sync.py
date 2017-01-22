@@ -178,10 +178,11 @@ def sync_versions():
         maintainers = []
         if 'maintainers' in pkg:
             for maint in pkg['maintainers']:
-                assert (
-                    'email' in maint and 'type' in maint,
-                    "Package %s maintainer %s entry not GLEP 67 valid" % (package.full_name, maint)
-                )
+                if 'email' not in maint or 'type' not in maint:
+                    raise ValueError(
+                        "Package %s maintainer %s entry not GLEP 67 valid" %
+                        (package.full_name, maint)
+                    )
 
                 email = maint['email'].lower()
                 if email in existing_maintainers:
