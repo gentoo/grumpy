@@ -242,7 +242,7 @@ def sync_versions():
                     db.session.delete(kwd_obj)
 
         # 3.2 cleanup dead revisions
-        for version, ver_obj in pkg_versions:
+        for version, ver_obj in pkg_versions.items():
             if version not in pkg['versions']:
                 db.session.delete(ver_obj)
 
