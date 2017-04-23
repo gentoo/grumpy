@@ -6,10 +6,8 @@ from flask_script import Manager, Shell
 from backend import app, db
 from backend.lib import sync
 
-# TODO: Replace this with flask 0.11 "flask" CLI and the extra commands support
-# via click therein - http://flask.pocoo.org/docs/0.11/cli/
-# TODO: This would then allow FLASK_DEBUG=1 automatically reloading the server
-# on code changes when launched with "flask run"
+# TODO: Replace this with flask 0.11 "flask" CLI and the extra commands support via click therein - http://flask.pocoo.org/docs/0.11/cli/
+# TODO: This would then allow FLASK_DEBUG=1 automatically reloading the server on code changes when launched with "flask run"
 
 manager = Manager(app)
 
