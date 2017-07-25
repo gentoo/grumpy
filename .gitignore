@@ -1,2 +1,4 @@
 __pycache__
+backend/grumpy.db
+backend/grumpy.db-journal
 venv/
