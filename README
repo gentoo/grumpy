@@ -1,0 +1,11 @@
+Getting started
+===============
+1. git clone git+ssh://git@git.gentoo.org/proj/grumpy.git
+2. cd grumpy
+3. virtualenv --python=python3 venv
+4. . venv/bin/activate
+5. pip install -r requirements.txt
+6. ./manage.py init
+7. ./manage.py sync_gentoo
+8. ./manage.py sync_versions
+9. ./manage.py runserver
