@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="jumbotron">
+  <i class="fa fa-question-circle" style="color:#ccc;float:right;font-size:100pt;" id="box-icon"></i>
+  <h1 id="box-title">Not Found <small>(404)</small></h1>
+
+  <p><strong>We couldn't find the resource you were trying to request.</strong></p>
+
+  <p>If you've followed a link <strong>on our websites</strong> that led here, please <a href="https://www.gentoo.org/inside-gentoo/contact/">let us know</a> about the broken link.
+  <hr>
+  <p><small>Maybe something is wrong after all, and there's more information available on our <em>Infrastructure Status</em> website:</small></p>
+  <p><a class="btn btn-primary" role="button" href="https://infra-status.gentoo.org/#pk_campaign=err&pk_kwd=404">Visit Infra Status</a></p>
+</div>
+
+{% endblock %}

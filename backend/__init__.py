@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import render_template, Flask
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask("frontend") # FIXME: Finish rearranging frontend/backend modules properly instead of pretending to be frontend in backend/__init__ because jinja templates are looked for from <what_is_passed_here>/templates
@@ -13,3 +13,7 @@ GrumpyView.register(app)
 SetupView.register(app)
 
 __all__ = ["app", "db"]
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('404.html'), 404
