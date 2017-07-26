@@ -1,4 +1,4 @@
-from flask import current_app, redirect, render_template, request, url_for
+from flask import abort, current_app, redirect, render_template, request, url_for
 from flask_classy import FlaskView, route
 from sqlalchemy.sql import collate
 from flask_wtf import FlaskForm
@@ -21,6 +21,16 @@ class GrumpyView(FlaskView):
     def index(self):
         categories = models.Category.query.all()
         return render_template("index.html", categories=categories)
+
+    @route('/category/<categoryname>', methods=['GET'])
+    def category(self, categoryname):
+        category = models.Category.query.filter_by(name=categoryname).first()
+
+        if category:
+            packages = models.Package.query.filter_by(category=category)
+            return render_template('category.html', category=category, packages=packages)
+        else:
+            abort(404)
 
 class SetupView(FlaskView):
     @route('/', methods=['GET', 'POST']) # FIXME: Can we enable POST without giving a rule override from the automatic, or handle this some other better way with wtforms setup?
