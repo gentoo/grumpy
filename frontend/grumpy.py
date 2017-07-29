@@ -32,6 +32,12 @@ class GrumpyView(FlaskView):
         else:
             abort(404)
 
+    @route('/maintainers', methods=['GET'])
+    def maintainers(self):
+        people = models.Maintainer.query.filter_by(is_project=False).order_by('email asc')
+        projects = models.Maintainer.query.filter_by(is_project=True).order_by('email asc')
+        return render_template('maintainers.html', people=people, projects=projects)
+
     @route('/package/<categoryname>/<packagename>', methods=['GET'])
     def package(self, categoryname, packagename):
         category = models.Category.query.filter_by(name=categoryname).first()

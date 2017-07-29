@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      <span class="fa fa-fw fa-cubes"></span>Maintainers
+    </h3>
+  </div>
+  <ul class="nav nav-tabs nav-justified" id="tabnav">
+    <li><a href="#people" data-toggle="tab"><strong>People</strong></a></li>
+    <li><a href="#projects" data-toggle="tab"><strong>Projects</strong></a></li>
+  </ul>
+  <div class="table-responsive">
+    <div class="tab-content">
+      <div class="tab-pane active" id="people">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+            </tr>
+          </thead>
+          {% for person in people -%}
+          <tr>
+            <td class="text-nowrap"><a href="maintainer/{{ person.email }}">{{ person.email }}</a></td>
+            <td>{{ person.name }}</td>
+          </tr>
+          {%- endfor %}
+        </table>
+      </div>
+      <div class="tab-pane active" id="projects">
+        <table class="table table-striped">
+         <thead>
+           <tr>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Descriptions</th>
+          </tr>
+         </thead>
+         {% for project in projects -%}
+         <tr>
+           <td class="text-nowrap"><a href="maintainer/{{ project.email }}">{{ project.email }}</a></td>
+           <td>{{ project.name }}</td>
+           <td>{{ project.description }}</td>
+         </tr>
+         {%- endfor %}
+       </table>
+   </div>
+  </div>
+</div>
+
+{% endblock %}
