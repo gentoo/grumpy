@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      <span class="fa fa-fw fa-cubes"></span>{{ category.name }}/{{ package.name }}
+    </h3>
+  </div>
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      PkgCheck results
+    </h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+     <thead>
+      <tr>
+        <th>Version</th>
+        <th>Class</th>
+        <th>Message</th>
+      </tr>
+      </thead>
+      {% for violation in pkgcheck -%}
+      <tr>
+        <td>{{ violation.version.version }}</td>
+        <td>{{ violation.violationclass }}</td>
+        <td>{{ violation.message }}</td>
+      </tr>
+      {%- endfor %}
+    </table>
+  </div>
+</div>
+
+{% endblock %}

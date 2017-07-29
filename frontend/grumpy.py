@@ -32,6 +32,17 @@ class GrumpyView(FlaskView):
         else:
             abort(404)
 
+    @route('/package/<categoryname>/<packagename>', methods=['GET'])
+    def package(self, categoryname, packagename):
+        category = models.Category.query.filter_by(name=categoryname).first()
+        package = models.Package.query.filter_by(category=category,name=packagename).first()
+        pkgcheck = models.PkgCheck.query.filter_by(package=package)
+
+        if package:
+            return render_template('package.html', category=category, package=package, pkgcheck=pkgcheck)
+        else:
+            abort(404)
+
 class SetupView(FlaskView):
     @route('/', methods=['GET', 'POST']) # FIXME: Can we enable POST without giving a rule override from the automatic, or handle this some other better way with wtforms setup?
     def index(self):
