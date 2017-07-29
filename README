@@ -8,4 +8,5 @@ Getting started
 6. ./manage.py init
 7. ./manage.py sync_gentoo
 8. ./manage.py sync_versions
-9. ./manage.py runserver
+9. ./manage.py sync_pkgcheck
+10. ./manage.py runserver
