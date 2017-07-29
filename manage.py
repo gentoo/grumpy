@@ -45,6 +45,11 @@ def sync_packages():
     sync.sync_packages()
 
 @manager.command
+def sync_pkgcheck():
+    """Synchronize dev-util/pkgcheck static analysis data"""
+    sync.sync_pkgcheck()
+
+@manager.command
 def sync_versions():
     """Synchronize only Gentoo package details"""
     sync.sync_versions()

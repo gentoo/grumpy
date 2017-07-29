@@ -5,7 +5,7 @@ from datetime import datetime
 import requests
 
 from .. import app, db
-from .models import Category, Keyword, Maintainer, Package, PackageVersion
+from .models import Category, Keyword, Maintainer, Package, PackageVersion, PkgCheck
 
 SYNC_BUFFER_SECS = 60*60 #1 hour
 proj_url = "https://api.gentoo.org/metastructure/projects.xml"
@@ -149,6 +149,67 @@ def sync_packages():
             else:
                 new_pkg = Package(category=category, name=package['name'])
                 db.session.add(new_pkg)
+    db.session.commit()
+
+def sync_pkgcheck():
+    data = http_session.get("https://gitweb.gentoo.org/report/gentoo-ci.git/plain/output.xml")
+    root = ET.fromstring(data.content)
+
+    if root.tag.lower() != 'checks':
+        print("Downloaded gentoo-ci output.xml root tag isn't 'checks'")
+        return
+
+    PkgCheck.query.delete()
+
+    for result_elem in root:
+        if result_elem.tag.lower() != 'result':
+            print("Skipping unknown <checks> subtag <%s>" % result_elem.tag)
+            continue
+
+        check = {
+            'category': None,
+            'package': None,
+            'version': None,
+            'class': '',
+            'message': '',
+        }
+
+        for elem in result_elem:
+            tag = elem.tag.lower()
+            text = elem.text
+
+            if tag == 'category':
+                category = Category.query.filter_by(name=text).first()
+                if category:
+                    check['category'] = category
+                else:
+                    print("Skipping unknown category <%s>" % text)
+            elif tag == 'package':
+                if check['category']:
+                    package = Package.query.filter_by(category=check['category'],name=text).first()
+                    if package:
+                        check['package'] = package
+                    else:
+                        print("Skipping unknown package <%s>" % text)
+                else:
+                    print("Skipping package <%s> for which no category is defined" % text)
+            elif tag == 'version':
+                if check['package']:
+                    version = PackageVersion.query.filter_by(package=check['package'], version=text).first()
+                    if version:
+                        check['version'] = version
+                    else:
+                        print("Skipping unknown version <%s-%s>" % (check['package'].name, text))
+                else:
+                    print("Skipping version <%s> for which no package is defined" % text)
+            elif tag == 'class':
+                check['class'] = elem.text.lower()
+            elif tag == 'msg':
+                check['message'] = elem.text.lower()
+
+        pkgcheck = PkgCheck(category=check['category'], package=check['package'], version=check['version'], violationclass=check['class'], message=check['message'])
+        db.session.add(pkgcheck)
+
     db.session.commit()
 
 def sync_versions():
