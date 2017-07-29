@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+      <span class="fa fa-fw fa-user"></span>{{ maintainer.email }}
+    </h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Package</th>
+        </tr>
+      </thead>
+      {% for package in packages -%}
+      <tr>
+        <td class="text-nowrap"><a href="/package/{{ package.category.name }}/{{ package.name }}">{{ package.category.name}}/{{ package.name }}</a></td>
+      </tr>
+      {%- endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}
