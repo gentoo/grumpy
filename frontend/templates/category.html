@@ -11,7 +11,7 @@
     <table class="table table-striped">
       {% for package in packages -%}
       <tr>
-        <td class="text-nowrap">{{ package.name }}</td>
+        <td class="text-nowrap"><a href="/package/{{package.category.name}}/{{ package.name }}">{{ package.name }}</a></td>
         <td>&nbsp;</td>
       </tr>
       {%- endfor %}
