@@ -87,3 +87,17 @@ class Maintainer(db.Model):
 
     def __repr__(self):
         return "<Maintainer %s '%s'>" % ("project" if self.is_project else "individual", self.email)
+
+class PkgCheck(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
+    category = db.relationship('Category', backref=db.backref('pkgcheck_violations', lazy='select'))
+    package_id = db.Column(db.Integer, db.ForeignKey('package.id'), nullable=True)
+    package = db.relationship('Package', backref=db.backref('pkgcheck_violations', lazy='select'))
+    version_id = db.Column(db.Integer, db.ForeignKey('package_version.id'), nullable=True)
+    version = db.relationship('PackageVersion', backref=db.backref('pkgcheck_violations', lazy='select'))
+    violationclass = db.Column(db.Unicode(30), nullable=False)
+    message = db.Column(db.Unicode(128), nullable=False)
+
+    def __repr__(self):
+        return "<PkgCheck %s/%s-%s %s>" % (self.category.name, self.package.name, self.violationclass)
